@@ -1045,7 +1045,12 @@ async def show_app_selection(update, context):
 async def monitor_loop(app):
     while True:
         try:
-            r = await client_async.get(f"{BASE_URL}/success_otp?api_key={API_KEY}")
+            r = await client_async.get(
+    f"{BASE_URL}/success-otp-info",
+    headers={
+        "X-API-Key": API_KEY
+    }
+)
             if r.status_code != 200:
                 print(f"Monitor API Error: HTTP Status {r.status_code}")
                 await asyncio.sleep(CHECK_INTERVAL)

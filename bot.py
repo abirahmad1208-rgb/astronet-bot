@@ -1056,25 +1056,18 @@ async def monitor_loop(app):
                 await asyncio.sleep(CHECK_INTERVAL)
                 continue
                 
-            try:
-                res = r.json()
-            except json.JSONDecodeError:
-                raw_text = r.text.strip()
-                if raw_text and raw_text != "no_otp":
-                    print(f"Monitor raw API non-JSON response: {raw_text[:100]}")
-                await asyncio.sleep(CHECK_INTERVAL)
-                continue
-            
-            otps = []
-            if isinstance(res, dict):
-                if "data" in res and isinstance(res["data"], dict) and "otps" in res["data"]:
-                    otps = res["data"]["otps"]
-                elif "otps" in res:
-                    otps = res["otps"]
-                elif "data" in res and isinstance(res["data"], list):
-                    otps = res["data"]
-            elif isinstance(res, list):
-                otps = res
+try:
+    res = r.json()
+except Exception as e:
+    print(f"JSON Error: {e}")
+    await asyncio.sleep(CHECK_INTERVAL)
+    continue
+
+otps = res.get("data", {}).get("otps", [])
+
+if not otps:
+    await asyncio.sleep(CHECK_INTERVAL)
+    continue
 
             if otps:
                 paid_data = load_data(PAID_SMS_FILE)

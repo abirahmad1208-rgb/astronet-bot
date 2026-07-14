@@ -1192,44 +1192,46 @@ async def monitor_loop(app):
 
 async def fetch_number_async(range_str):
     """
-    যেকোনো এপিআই রেসপন্স (JSON, colon, pipe separated) অত্যন্ত দ্রুততার সাথে পার্স করে 
-    সঠিক অ্যাক্টিভ নম্বরটি রিটার্ন করার জন্য অপ্টিমাইজড এপিআই পার্সার।
+    MiahHost OTP API - Get Number
     """
     try:
-        url = f"{BASE_URL}/getnumber?api_key={API_KEY}&rid={range_str}&range={range_str}&target={range_str}&national=1&remove_plus=1"
-        r = await client_async.get(url)
-        
+        headers = {
+            "X-API-Key": API_KEY
+        }
+
+        payload = {
+            "range": range_str
+        }
+
+        r = await client_async.post(
+            f"{BASE_URL}/getnum",
+            json=payload,
+            headers=headers
+        )
+
         if r.status_code != 200:
-            print(f"fetch_number_async Error: HTTP {r.status_code}")
-            return None
-            
-        raw_text = r.text.strip()
-        if not raw_text:
-            return None
-            
-        # প্যানেলের বিভিন্ন এরর কীওয়ার্ডস স্কিপ করা
-        err_keywords = ["NO_NUMBERS", "NO_NUMBER", "OUT_OF_STOCK", "BANNED", "LIMIT", "ERROR", "BALANCE", "EMPTY", "SQL"]
-        if any(err in raw_text.upper() for err in err_keywords):
+            print(f"HTTP Error: {r.status_code}")
             return None
 
-        # ১. JSON রেসপন্স পার্সিং
-        try:
-            data = r.json()
-            if isinstance(data, dict):
-                if str(data.get("status")).lower() in ["error", "fail", "false"]:
-                    return None
-                
-                d = data.get("data") if isinstance(data.get("data"), dict) else data
-                number = d.get("full_number") or d.get("number") or d.get("phone") or d.get("phoneNumber") or d.get("mobile")
-                if number:
-                    return {
-                        "number": str(number),
-                        "otp_now": bool(d.get("otp_now", False) or d.get("otp")),
-                        "otp": d.get("otp"),
-                        "sms": d.get("sms") or d.get("message"),
-                    }
-        except:
-            pass
+        data = r.json()
+
+        if data.get("meta", {}).get("code") != 200:
+            return None
+
+        d = data.get("data", {})
+
+        return {
+            "number": d.get("no_plus_number"),
+            "otp_now": False,
+            "otp": None,
+            "sms": None,
+            "country": d.get("country"),
+            "operator": d.get("operator")
+        }
+
+    except Exception as e:
+        print(f"fetch_number_async Error: {e}")
+        return None
 
         # ২. টেক্সট রেসপন্স পার্সিং (ACCESS_NUMBER:ID:NUMBER বা ID|NUMBER বা ডিরেক্ট নম্বর)
         parts = re.split(r'[:|]', raw_text)

@@ -15,7 +15,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 # ==================== CONFIG SECTION ====================
 
 BOT_TOKEN = "8621958165:AAHsGEhe8u0Tq9ZFMLipDx835oqUQgKHDck"
-API_KEY = "api_key_by_mino"
+API_KEY = "MiahHost_8376ED006A567468E72D0F78"
 BASE_URL = "https://mino-sms-panel.xyz"           # প্যানেল ডোমেন
 USER_DATA_FILE = "users.json"
 PAID_SMS_FILE = "paid_sms.json"
